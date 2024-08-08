@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Text;
 using System.Windows.Forms;
 using System.IO;
@@ -32,6 +32,43 @@ namespace STRGeditor
         public Form1()
         {
             InitializeComponent();
+            ConfigurarDataGridView();
+        }
+
+        private void ConfigurarDataGridView()
+        {
+            dataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
+            dataGridView1.DefaultCellStyle.WrapMode = DataGridViewTriState.True;
+            dataGridView1.EditingControlShowing += dataGridView1_EditingControlShowing;
+            dataGridView1.CellEndEdit += dataGridView1_CellEndEdit;
+            dataGridView1.CellBeginEdit += dataGridView1_CellBeginEdit;
+        }
+
+        private void dataGridView1_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+        {
+            if (e.Control is TextBox textBox)
+            {
+                textBox.Multiline = true;
+                textBox.AcceptsReturn = true;
+                textBox.ScrollBars = ScrollBars.Vertical;
+            }
+        }
+
+        private void dataGridView1_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        {
+            if (dataGridView1.CurrentCell.Value != null)
+            {
+                dataGridView1.CurrentCell.Value = dataGridView1.CurrentCell.Value.ToString().Replace("\n", Environment.NewLine);
+            }
+        }
+
+        private void dataGridView1_CellEndEdit(object sender, DataGridViewCellEventArgs e)
+        {
+            if (dataGridView1.CurrentCell.Value != null)
+            {
+                dataGridView1.CurrentCell.Value = dataGridView1.CurrentCell.Value.ToString().Replace(Environment.NewLine, "\n");
+                dataGridView1.Rows[e.RowIndex].Height = dataGridView1.Rows[e.RowIndex].GetPreferredHeight(e.RowIndex, DataGridViewAutoSizeRowMode.AllCells, true);
+            }
         }
 
         private void abrirToolStripMenuItem_Click(object sender, EventArgs e)
@@ -116,11 +153,6 @@ namespace STRGeditor
             nts = 0;
             ntc = null;
             old_index = -1;
-        }
-
-        private void arquivoToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
         }
 
         int old_index = -1;
@@ -223,12 +255,11 @@ namespace STRGeditor
 
             if (Comprimir) File.WriteAllBytes(FileName, Compress(File.ReadAllBytes(FileName)));
         }
-        
+
         private void salvar()
         {
             if (old_index > -1)
             {
-
                 for (int i = 0; i < textos[0].Length; i++)
                 {
                     string val = (string)dataGridView1.Rows[i].Cells[0].Value;
@@ -239,7 +270,6 @@ namespace STRGeditor
                 }
             }
         }
-
 
         private byte[] Compress(byte[] Data)
         {
@@ -277,6 +307,33 @@ namespace STRGeditor
         private void sobreToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show("STRG editor created by Angel333119");
+        }
+
+        private void arquivoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            
+        }
+
+        private void dataGridView1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter && e.Shift)
+            {
+                e.SuppressKeyPress = true; // Impede o comportamento padrão do ENTER
+
+                int rowIndex = dataGridView1.CurrentCell.RowIndex;
+                int columnIndex = dataGridView1.CurrentCell.ColumnIndex;
+
+                if (rowIndex >= 0 && columnIndex >= 0)
+                {
+                    DataGridViewCell cell = dataGridView1.Rows[rowIndex].Cells[columnIndex];
+
+                    if (cell.Value == null)
+                        cell.Value = string.Empty;
+
+                    cell.Value += Environment.NewLine;
+                    dataGridView1.CurrentCell = cell;
+                }
+            }
         }
     }
 }
