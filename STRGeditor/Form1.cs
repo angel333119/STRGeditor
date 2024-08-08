@@ -42,10 +42,11 @@ namespace STRGeditor
 
             if (openFileDialog1.ShowDialog() == DialogResult.OK)
             {
+                ResetarEstado();
+
                 arquivo_aberto = openFileDialog1.FileName;
 
                 FileStream arq = new FileStream(openFileDialog1.FileName, FileMode.Open);
-
                 BinaryReader br = new BinaryReader(arq);
 
                 magic = bigendian(br.ReadUInt32());
@@ -64,11 +65,9 @@ namespace STRGeditor
 
                 for (int i = 0; i < langnumb; i++)
                 {
-
                     byte[] btexto = br.ReadBytes(4);
                     string texto = Encoding.ASCII.GetString(btexto);
                     listBox1.Items.Add(texto);
-
                 }
 
                 textos = new string[langnumb][];
@@ -92,15 +91,31 @@ namespace STRGeditor
 
                         arq.Seek(pos_antiga, SeekOrigin.Begin);
 
-                        dataGridView1.Rows.Clear();
                         textos[i][j] = textt;
                     }
                 }
 
-                arq.Dispose();
+                br.Close();
+                arq.Close();
             }
 
             openFileDialog1.Dispose();
+        }
+
+        private void ResetarEstado()
+        {
+            dataGridView1.Rows.Clear();
+            listBox1.Items.Clear();
+            textos = null;
+            arquivo_aberto = null;
+            magic = 0;
+            version = 0;
+            langnumb = 0;
+            textnumb = 0;
+            nametable = 0;
+            nts = 0;
+            ntc = null;
+            old_index = -1;
         }
 
         private void arquivoToolStripMenuItem_Click(object sender, EventArgs e)
